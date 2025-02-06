@@ -27,7 +27,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const hash = crypto.createHash('sha256');
     const hashedPassword = hash.update(password).digest('hex');
 
-    if (hashedPassword !== user.password) {
+    if (hashedPassword !== user.dataValues.password) {
       res.status(401).json({ message: "Password does not match!" });
       return;
     }
@@ -35,7 +35,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     // Generate JWT
     const token = jwt.sign(
       {
-        user_id: user.id,
+        user_id: user.dataValues.id,
       },
       SECRET_KEY,
       { expiresIn: "1d" } // Token validity: 1 day
@@ -46,9 +46,9 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       message: "Login successful",
       token,
       user: {
-        id: user.id,
-        username: user.name,
-        email: user.email,
+        id: user.dataValues.id,
+        username: user.dataValues.name,
+        email: user.dataValues.email,
       },
     });
     return;
