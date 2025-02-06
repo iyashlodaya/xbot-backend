@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import * as crypto from "crypto";
+import User from "../../db/models/user";
 
-import { User } from "../../db/models/user";
 
 // Create a user (Register API)
 export const createUser = async (

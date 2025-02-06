@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import * as crypto from 'crypto';
-import { User } from "../../db/models/user";
+import User from "../../db/models/user";
 
 const SECRET_KEY = process.env.JWT_SECRET_KEY as string; // Replace with an environment variable in production
 
