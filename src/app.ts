@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import sequelize from './db/models';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -20,6 +21,16 @@ app.post('/login', (req: Request, res: Response) => {
     // Add login logic here
     console.log(username, password);
     res.send('User logged in successfully');
+});
+
+// Check database connection
+sequelize
+.authenticate()
+.then(() => {
+  console.log("Database connected successfully.");
+})
+.catch((error: any) => {
+  console.error("Unable to connect to the database:", error);
 });
 
 app.listen(port, () => {
