@@ -19,7 +19,7 @@ const generateTweet = async (req: Request, res: Response): Promise<void>  => {
 
   const {
     hashtags = false,
-    length = "medium",
+    length = "short",
     language = "English",
     emoji = false,
     tone = "casual",
@@ -94,21 +94,28 @@ const generateTweet = async (req: Request, res: Response): Promise<void>  => {
 
   const tweetPrompt = `Generate a tweet in ${language || "English"} with ${
     tone || "casual"
-  } about ${topic}. Keeping it ${lengthMap[length] || lengthMap["medium"]}.
+  } about ${topic}. Keeping it ${lengthMap[length] || lengthMap["short"]}.
   ${hashtags ? `Include relevant hashtags.` : `Do not include hashtags.`}
   ${emoji ? `Use engaging emojis where appropriate.` : `Avoid using emojis.`}`;
 
   const max_tokens = length === "short" ? 50 : length === "medium" ? 100 : 200;
 
   try {
-    const completion = await openai.completions.create({
+    const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
-      prompt: tweetPrompt,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are an AI that generates engaging tweets based on user preferences.",
+        },
+        { role: "user", content: tweetPrompt },
+      ],
       max_tokens: max_tokens,
       temperature: 0.7,
     });
 
-    res.json({ tweet: completion.choices[0].text?.trim() });
+    res.json({ tweet: completion.choices[0].message.content });
     return;
   } catch (error) {
     console.error("Error generating tweet:", error);
