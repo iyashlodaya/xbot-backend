@@ -21,6 +21,7 @@
   "homepage": "https://github.com/iyashlodaya/xbot-backend#readme",
   "dependencies": {
     "@types/sequelize": "^4.28.20",
+    "axios": "^1.7.9",
     "crypto": "^1.0.1",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
