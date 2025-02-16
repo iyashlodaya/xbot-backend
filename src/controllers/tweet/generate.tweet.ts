@@ -1,8 +1,20 @@
 import { Request, Response } from "express";
 import openai from "../../utils/openAIClient";
+import UserPreferences from "../../db/models/userPreferences";
 
-const generateTweet = async (req: Request, res: Response): Promise<void>  => {
+const generateTweet = async (req: Request, res: Response): Promise<void> => {
+  const userId = req.user?.id;
+
+  if (!userId) {
+    res.status(401).json({ message: "Unauthorized" });
+    return;
+  }
+
   const { topic, options } = req.body;
+
+  const preferences = await UserPreferences.findOne({
+    where: { user_id: userId },
+  });
 
   /* *
   options: this would have the following options:
@@ -17,12 +29,13 @@ const generateTweet = async (req: Request, res: Response): Promise<void>  => {
     return;
   }
 
+  // Use user preferences if available, otherwise use options from request body
   const {
-    hashtags = false,
-    length = "short",
-    language = "English",
-    emoji = false,
-    tone = "casual",
+    hashtags = preferences?.hashtags ?? false,
+    length = preferences?.length ?? "short",
+    language = preferences?.language ?? "English",
+    emoji = preferences?.emojis ?? false,
+    tone = preferences?.tone ?? "casual",
   } = options as {
     hashtags?: boolean;
     length?: "short" | "medium" | "long";
@@ -39,11 +52,9 @@ const generateTweet = async (req: Request, res: Response): Promise<void>  => {
 
   // Validate length if provided
   if (length && !["short", "medium", "long"].includes(length)) {
-    res
-      .status(400)
-      .json({
-        error: "Invalid length option. Must be 'short', 'medium', or 'long'",
-      });
+    res.status(400).json({
+      error: "Invalid length option. Must be 'short', 'medium', or 'long'",
+    });
     return;
   }
 
@@ -77,12 +88,10 @@ const generateTweet = async (req: Request, res: Response): Promise<void>  => {
       "professional",
     ].includes(tone)
   ) {
-    res
-      .status(400)
-      .json({
-        error:
-          "Invalid tone option. Must be 'funny', 'motivational', 'casual', 'formal', 'sarcastic', or 'professional'",
-      });
+    res.status(400).json({
+      error:
+        "Invalid tone option. Must be 'funny', 'motivational', 'casual', 'formal', 'sarcastic', or 'professional'",
+    });
     return;
   }
 
@@ -94,7 +103,9 @@ const generateTweet = async (req: Request, res: Response): Promise<void>  => {
 
   const tweetPrompt = `Generate a tweet in ${language || "English"} with ${
     tone || "casual"
-  } about ${topic}. Keeping it ${lengthMap[length] || lengthMap["short"]}.
+  } about ${topic}. Keeping it ${
+    lengthMap[length as keyof typeof lengthMap] || lengthMap["short"]
+  }.
   ${hashtags ? `Include relevant hashtags.` : `Do not include hashtags.`}
   ${emoji ? `Use engaging emojis where appropriate.` : `Avoid using emojis.`}`;
 
